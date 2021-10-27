@@ -1,9 +1,9 @@
 class Clue:
 
-    def __init__(self, position, answer_length, clue=None):
+    def __init__(self, position: tuple[int, int], answer_len: int, clue: str = None):
         self.clue = clue
         self.position = position
-        self.answer_length = answer_length
+        self.answer_len = answer_len
 
     def __str__(self):
-        return f"{self.clue} ({self.answer_length}), at {self.position}"
+        return f"{self.clue} ({self.answer_len}), at {self.position}"

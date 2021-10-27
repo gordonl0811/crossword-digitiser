@@ -1,7 +1,11 @@
 import cv2
 import numpy as np
+import pytesseract
+
 from clue import Clue
+
 from collections import OrderedDict
+import re
 
 
 class Grid:
@@ -61,6 +65,93 @@ class Grid:
                     self.set_grid_cell(i, j)
 
         self.get_clue_metadata()
+
+    def upload_clues(self, img_path: str, is_across: bool):
+
+        pytesseract.pytesseract.tesseract_cmd = r"C:\\Program Files\\Tesseract-OCR\\tesseract.exe"
+
+        img = cv2.imread(img_path)
+
+        # TODO: Image preprocessing
+
+        # Convert the image to a string
+        text = pytesseract.image_to_string(img, lang='eng', config='--psm 6')
+
+        # TODO: Text post processing
+
+        # Remove Across/Down if needed
+        if is_across:
+            text = text.removeprefix("ACROSS")
+            text = text.removeprefix("across")
+        else:
+            text = text.removeprefix("DOWN")
+            text = text.removeprefix("down")
+
+        # Change vertical bars to "I"
+        text = text.replace('|', 'I')
+
+        # Remove newlines
+        text = text.replace('\n', '')
+
+        # TODO: Get clues
+
+        # Split text based on the answer length found at the end of a clue
+        split_text = re.split(r'(\([1-9][0-9]?(, ?[1-9][0-9]?)*\))', text)
+
+        # The above regex uses two capture groups, and .split() returns both
+        # in the result (returning None if the 2nd capture group isn't invoked)
+        del split_text[2::3]
+
+        # Group each clue with its answer length (the element succeeding the clue in the list
+        split_text_iter = iter(split_text)
+        clue_length_tuples = list(zip(split_text_iter, split_text_iter))
+
+        # Process each clue
+        for clue, length in clue_length_tuples:
+
+            # Search for the 2 digit number in the clue
+            clue_no_search = re.match(r'([1-9][0-9]?)\.?(.*)', clue)
+
+            # Search for the actual value of the length
+            length_val_search = re.match(r'\((.*)\)', length)
+
+            # Check that matches were successful
+            if not clue_no_search:
+
+                raise ValueError("Couldn't detect the clue number from the image")
+
+            elif not length_val_search:
+
+                raise ValueError("Couldn't detect the answer length from the image")
+
+            else:
+
+                # Convert to relevant types and remove whitespace at start/end
+                clue_no = int(clue_no_search.group(1))
+                clue_text = clue_no_search.group(2).lstrip().rstrip()
+
+                length_val_match = length_val_search.group(1)
+
+                # Remove whitespace
+                length_val_match = length_val_match.replace(" ", "")
+
+                if ',' in length_val_match:
+                    word_lengths = length_val_match.split(',')
+                    answer_len = sum(map(int, word_lengths))
+                else:
+                    answer_len = int(length_val_match)
+
+                # The map being used is dependent on the across_clues flag given
+                clues_map = self.clues_across_map if is_across else self.clues_down_map
+
+                # Verify that the answer length matches what the grid has
+                if answer_len != clues_map[clue_no].answer_len:
+
+                    raise ValueError(f"Answer length of {answer_len} != grid value of {clues_map[clue_no].answer_len}\n"
+                                     f"CLUE: {clue_no}")
+
+                # Store the clue in the grid's map,
+                clues_map[clue_no].clue = clue_text
 
     def get_clue_metadata(self):
 
@@ -217,4 +308,8 @@ class Grid:
 if __name__ == '__main__':
     grid = Grid()
     grid.upload_grid('test_images/6_grid.jpg', 15, 15)
+    grid.upload_clues('test_images/6_clues_across.jpg', is_across=True)
+    grid.upload_clues('test_images/6_clues_down.jpg', is_across=False)
+
     grid.print_data()
+
