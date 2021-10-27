@@ -4,7 +4,7 @@ from clue import Clue
 from collections import OrderedDict
 
 
-class GridData:
+class Grid:
 
     def __init__(self):
         self.grid = None
@@ -207,7 +207,7 @@ class GridData:
 
 
 if __name__ == '__main__':
-    grid = GridData()
+    grid = Grid()
     grid.upload_grid('test_images/6_grid.jpg', 15, 15)
     grid.detect_words()
     grid.print_data()
