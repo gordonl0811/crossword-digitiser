@@ -51,7 +51,9 @@ class Grid:
                 if cv2.countNonZero(box) > 50:
                     self.grid.itemset((i, j), 1)
 
-    def detect_words(self):
+        self.get_clue_metadata()
+
+    def get_clue_metadata(self):
 
         num_rows = self.length_rows()
         num_cols = self.length_cols()
@@ -148,9 +150,6 @@ class Grid:
         # Sort "down" clues
         down_clues.sort()
 
-        # print(across_clues)
-        # print(down_clues)
-
         # Create and enumerate the clues
 
         clue_no = 1
@@ -209,5 +208,4 @@ class Grid:
 if __name__ == '__main__':
     grid = Grid()
     grid.upload_grid('test_images/6_grid.jpg', 15, 15)
-    grid.detect_words()
     grid.print_data()
