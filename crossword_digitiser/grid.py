@@ -11,6 +11,15 @@ class Grid:
         self.clues_across_map = OrderedDict()
         self.clues_down_map = OrderedDict()
 
+    def create_grid(self, rows: int, cols: int):
+        self.grid = np.zeros((rows, cols))
+
+    def set_grid_cell(self, row, col):
+        self.grid.itemset((row, col), 1)
+
+    def clear_grid_cell(self, row, col):
+        self.grid.itemset((row, col), 0)
+
     def upload_grid(self, img_path: str, rows: int, cols: int):
 
         # Read the image and convert it to grayscale
@@ -41,15 +50,15 @@ class Grid:
         cross_rect = thresh2[y:y + h, x:x + w]
         cross_rect = cv2.resize(cross_rect, (rows * 10, cols * 10))
 
-        # Fill a 2D array with zeroes
-        self.grid = np.zeros((rows, cols))
+        # Initialise the grid as a 2D array with zeroes
+        self.create_grid(rows, cols)
 
         # Iterate through each cell, treating it as empty if more than 50 pixels are white
         for i in range(rows):
             for j in range(cols):
                 box = cross_rect[i * 10:(i + 1) * 10, j * 10:(j + 1) * 10]
                 if cv2.countNonZero(box) > 50:
-                    self.grid.itemset((i, j), 1)
+                    self.set_grid_cell(i, j)
 
         self.get_clue_metadata()
 
