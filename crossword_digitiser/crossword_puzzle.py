@@ -2,6 +2,7 @@ import cv2
 import pytesseract
 
 from grid import Grid
+from clue import Clue, ClueMetadata
 
 from collections import OrderedDict
 import re
@@ -55,7 +56,7 @@ class CrosswordPuzzle:
                              f"Expected: {expected_answer_len} "
                              f"Received: {len(answer)}")
 
-        clue_pos_row, clue_pos_col = clue_map[clue_no].position
+        clue_pos_row, clue_pos_col = clue_map[clue_no].pos
 
         for i, char in enumerate(answer):
 
@@ -82,6 +83,15 @@ class CrosswordPuzzle:
             # Character is already in the grid and aligns with the provided answer
 
     def upload_from_images(self, grid_path: str, across_clues_path: str, down_clues_path: str, rows: int, cols: int):
+        """
+        Function that takes in a picture of a grid, across and down clues,
+        and verifying that the clues match the grid
+        :param grid_path: path to the picture of the grid
+        :param across_clues_path: path to the picture of the Across clues
+        :param down_clues_path: path to the picture of the Down clues
+        :param rows: number of rows in the grid
+        :param cols: number of columns in the grid
+        """
 
         print("Uploading grid...")
         self.__upload_grid(img_path=grid_path, rows=rows, cols=cols)
@@ -93,7 +103,7 @@ class CrosswordPuzzle:
         self.__upload_clues(img_path=down_clues_path, is_across=False)
 
         print("Verifying puzzle state...")
-        self.__verify_puzzle_state()
+        self.__verify_and_sync()
 
     def __upload_grid(self, img_path: str, rows: int, cols: int):
         """
@@ -101,7 +111,6 @@ class CrosswordPuzzle:
         :param img_path: path to the image file
         :param rows: number of rows in the grid
         :param cols: number of columns in the grid
-        :return:
         """
 
         # Read the image and convert it to grayscale
@@ -147,6 +156,7 @@ class CrosswordPuzzle:
     def __upload_clues(self, img_path: str, is_across: bool):
         """
         Uploads a column of clues to the data structure using regexes and string manipulation
+        Clue objects will be missing a "position" field, which is updated in __verify_and_sync()
         :param img_path: path to the image file
         :param is_across: True if the clues are from the across column, False otherwise
         :return:
@@ -156,12 +166,12 @@ class CrosswordPuzzle:
 
         img = cv2.imread(img_path)
 
-        # TODO: Image preprocessing
+        # TODO: IMAGE PREPROCESSING
 
         # Convert the image to a string
         text = pytesseract.image_to_string(img, lang='eng', config=f'--psm 6')
 
-        # TODO: Text post processing
+        # TEXT POST PROCESSING
 
         # Remove Across/Down if needed
         text = re.sub('^across' if is_across else '^down', '', text, flags=re.IGNORECASE)
@@ -172,7 +182,7 @@ class CrosswordPuzzle:
         # Replace newlines with spaces
         text = text.replace('\n', ' ')
 
-        # TODO: Get clues
+        # EXTRACT THE CLUES
 
         # Split text based on the answer length found at the end of a clue
         split_text = re.split(r'(\([1-9][0-9]?(, ?[1-9][0-9]?)*\))', text)
@@ -223,19 +233,18 @@ class CrosswordPuzzle:
                 # The map being used is dependent on the across_clues flag given
                 clues_map = self._clues_across_map if is_across else self._clues_down_map
 
-                # Verify that the answer length matches what the grid has
-                if sum(answer_len) != sum(clues_map[clue_no].answer_len):
+                # Store the clue in the respective grid's map
+                clues_map[clue_no] = Clue(clue_text, answer_len, None)
 
-                    raise ValueError(
-                        f"Answer length of {answer_len} != grid structure of {clues_map[clue_no].answer_len}\n"
-                        f"CLUE: {clue_no}"
-                    )
-                else:
-                    # Reassign the actual clue length
-                    clues_map[clue_no].answer_len = answer_len
+    def __verify_and_sync(self):
+        """
+        Gets a set of metadata from the grid and verifies the stored clues against it
+        """
 
-                # Store the clue in the grid's map,
-                clues_map[clue_no].clue = clue_text
+        across_clues_metadata, down_clues_metadata = self.__get_clue_metadata()
+
+        self.__verify_clues(self._clues_across_map, across_clues_metadata)
+        self.__verify_clues(self._clues_down_map, down_clues_metadata)
 
     def __get_clue_metadata(self):
         """
@@ -247,8 +256,8 @@ class CrosswordPuzzle:
         num_rows = self._grid.length_rows()
         num_cols = self._grid.length_cols()
 
-        across_clues = []
-        down_clues = []
+        across_metadata = []
+        down_metadata = []
 
         # Get all "across" clues
         for i, row in enumerate(self._grid.data):
@@ -276,7 +285,7 @@ class CrosswordPuzzle:
                         if word_length > 1:
                             # We've got a word, store the information
                             position = (i, p1)
-                            across_clues.append((position, [word_length]))
+                            across_metadata.append(ClueMetadata(position, word_length))
                         # 1st pointer set to 2nd (ending loop)
                         p1 = p2
                     else:
@@ -290,7 +299,7 @@ class CrosswordPuzzle:
                             if word_length > 1:
                                 # We've got a word, store the information
                                 position = (i, p1)
-                                across_clues.append((position, [word_length]))
+                                across_metadata.append(ClueMetadata(position, word_length))
                             # 1st pointer set to 2nd
                             p1 = p2
 
@@ -318,7 +327,7 @@ class CrosswordPuzzle:
                         if word_length > 1:
                             # We've got a word, store the information
                             position = (p1, j)
-                            down_clues.append((position, [word_length]))
+                            down_metadata.append(ClueMetadata(position, word_length))
                         # 1st pointer set to 2nd (ending loop)
                         p1 = p2
                     else:
@@ -332,44 +341,71 @@ class CrosswordPuzzle:
                             if word_length > 1:
                                 # We've got a word, store the information
                                 position = (p1, j)
-                                down_clues.append((position, [word_length]))
+                                down_metadata.append(ClueMetadata(position, word_length))
                             # 1st pointer set to 2nd
                             p1 = p2
 
         # Sort "down" clues
-        down_clues.sort()
+        down_metadata.sort()
 
         # Create and enumerate the clues
 
         clue_no = 1
-        enumerated_across = {}
-        enumerated_down = {}
+        enumerated_across_metadata = {}
+        enumerated_down_metadata = {}
 
-        while across_clues or down_clues:
+        while across_metadata or down_metadata:
 
             # Assign the rest of the clue numbers
-            if not across_clues:
-                while down_clues:
-                    enumerated_down[clue_no] = down_clues.pop(0)
+            if not across_metadata:
+                while down_metadata:
+                    enumerated_down_metadata[clue_no] = down_metadata.pop(0)
                     clue_no += 1
-            elif not down_clues:
-                while across_clues:
-                    enumerated_across[clue_no] = across_clues.pop(0)
+            elif not down_metadata:
+                while across_metadata:
+                    enumerated_across_metadata[clue_no] = across_metadata.pop(0)
                     clue_no += 1
             # Compare the positions of the across and down clues
-            elif across_clues[0][0] < down_clues[0][0]:
-                enumerated_across[clue_no] = across_clues.pop(0)
+            elif across_metadata[0] < down_metadata[0]:
+                enumerated_across_metadata[clue_no] = across_metadata.pop(0)
                 clue_no += 1
-            elif across_clues[0][0] > down_clues[0][0]:
-                enumerated_down[clue_no] = down_clues.pop(0)
+            elif across_metadata[0] > down_metadata[0]:
+                enumerated_down_metadata[clue_no] = down_metadata.pop(0)
                 clue_no += 1
             else:
-                enumerated_across[clue_no] = across_clues.pop(0)
-                enumerated_down[clue_no] = down_clues.pop(0)
+                enumerated_across_metadata[clue_no] = across_metadata.pop(0)
+                enumerated_down_metadata[clue_no] = down_metadata.pop(0)
                 clue_no += 1
 
-    def __verify_puzzle_state(self):
-        pass
+        return enumerated_across_metadata, enumerated_down_metadata
+
+    @staticmethod
+    def __verify_clues(clues_map, clues_metadata):
+        """
+        Checks if a map of enumerated Clues matches a map of enumerated ClueMetadata,
+        and updates the Clues' positions if successful
+        :param clues_map: map of clue numbers to clues
+        :param clues_metadata: map of clue numbers to clue metadata
+        """
+
+        for clue_no, clue in clues_map.items():
+
+            # Check if the grid expects a clue
+            if clue_no not in clues_metadata:
+                raise ValueError(f"Clue {clue_no} ({clue.clue_text}) not found in grid")
+
+            clue_metadata = clues_metadata[clue_no]
+
+            # Check if the grid and clue have matching lengths
+            if sum(clue.answer_len) != clue_metadata.length:
+                raise ValueError(
+                    f"CLUE: {clue_no}\n"
+                    f"Answer's Expected Length: {clue.answer_len}\n"
+                    f"Grid's Expected Length: {clue_metadata.length}"
+                )
+
+            # Clue is verified - sync the clue by storing its position from the metadata
+            clue.pos = clue_metadata.pos
 
 
 if __name__ == '__main__':
