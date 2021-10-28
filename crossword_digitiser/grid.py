@@ -67,6 +67,21 @@ class Grid:
 
         self.get_clue_metadata()
 
+    def upload_puzzle(self, img_path: str, is_across: bool):
+
+        pytesseract.pytesseract.tesseract_cmd = r"C:\\Program Files\\Tesseract-OCR\\tesseract.exe"
+
+        img = cv2.imread(img_path)
+
+        # Convert the image to a string
+        text = pytesseract.image_to_string(
+            img,
+            lang='eng',
+            config=f'--psm 1'
+        )
+
+        print(text)
+
     def upload_clues(self, img_path: str, is_across: bool):
 
         pytesseract.pytesseract.tesseract_cmd = r"C:\\Program Files\\Tesseract-OCR\\tesseract.exe"
@@ -312,11 +327,13 @@ class Grid:
 
 if __name__ == '__main__':
     grid = Grid()
-    print("Uploading grid...")
-    grid.upload_grid('test_images/6_grid.jpg', 15, 15)
-    print("Uploading across clues...")
-    grid.upload_clues('test_images/6_clues_across.jpg', is_across=True)
-    print("Uploading down clues...")
-    grid.upload_clues('test_images/6_clues_down.jpg', is_across=False)
-    grid.print_data()
+    # print("Uploading grid...")
+    # # grid.upload_grid('test_images/6_grid.jpg', 15, 15)
+    # print("Uploading across clues...")
+    # grid.upload_clues('test_images/6_clues_across.jpg', is_across=True)
+    # print("Uploading down clues...")
+    # grid.upload_clues('test_images/6_clues_down.jpg', is_across=False)
+    # grid.print_data()
+
+    grid.upload_puzzle('test_images/9_puzzle.jpg', True)
 
