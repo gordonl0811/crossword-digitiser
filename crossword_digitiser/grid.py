@@ -80,17 +80,12 @@ class Grid:
         # TODO: Text post processing
 
         # Remove Across/Down if needed
-        if is_across:
-            text = text.removeprefix("ACROSS")
-            text = text.removeprefix("across")
-        else:
-            text = text.removeprefix("DOWN")
-            text = text.removeprefix("down")
+        text = re.sub('^across' if is_across else '^down', '', text, flags=re.IGNORECASE)
 
         # Change vertical bars to "I"
         text = text.replace('|', 'I')
 
-        # Remove newlines
+        # Remove newlines and duplicate newlines
         text = text.replace('\n', '')
 
         # TODO: Get clues
@@ -106,6 +101,8 @@ class Grid:
         split_text_iter = iter(split_text)
         clue_length_tuples = list(zip(split_text_iter, split_text_iter))
 
+        print(clue_length_tuples)
+
         # Process each clue
         for clue, length in clue_length_tuples:
 
@@ -118,11 +115,11 @@ class Grid:
             # Check that matches were successful
             if not clue_no_search:
 
-                raise ValueError("Couldn't detect the clue number from the image")
+                raise ValueError(f"Couldn't detect the clue number from the image for {clue}")
 
             elif not length_val_search:
 
-                raise ValueError("Couldn't detect the answer length from the image")
+                raise ValueError(f"Couldn't detect the answer length from the image for {clue}")
 
             else:
 
