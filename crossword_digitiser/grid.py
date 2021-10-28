@@ -3,7 +3,6 @@ import numpy as np
 import pytesseract
 
 from clue import Clue
-# from constants import TESSERACT_WHITELIST
 
 from collections import OrderedDict
 import re
@@ -17,15 +16,73 @@ class Grid:
         self.clues_down_map = OrderedDict()
 
     def create_grid(self, rows: int, cols: int):
+        """
+        Creates an empty grid with specified dimensions
+        :param rows: number of rows in the grid
+        :param cols: number of columns in the grid
+        :return: None
+        """
         self.grid = np.zeros((rows, cols))
 
     def set_grid_cell(self, row, col):
+        """
+        Sets a cell in the crossword grid to 1 (white cell)
+        :param row: row number in the grid
+        :param col: column number in the grid
+        :return:
+        """
         self.grid.itemset((row, col), 1)
 
     def clear_grid_cell(self, row, col):
+        """
+        Sets a cell in the crossword grid to 0 (black cell)
+        :param row: row number in the grid
+        :param col: column number in the grid
+        :return:
+        """
         self.grid.itemset((row, col), 0)
 
+    def length_rows(self):
+        """
+        Returns the number of rows in the grid
+        :return: Rows in the grid
+        """
+        assert self.grid is not None
+        return len(self.grid)
+
+    def length_cols(self):
+        """
+        Returns the number of columns in the grid
+        :return: Columns in the grid
+        """
+        assert self.grid is not None
+        return len(self.grid[0])
+
+    def print_data(self):
+        """
+        Pretty prints the data stored in this class
+        :return:
+        """
+        print("============== GRID ==============")
+        print(self.grid)
+        print("============== CLUES ==============")
+        print("ACROSS:")
+        print('\n'.join(
+            [f"{pos}. {clue}" for pos, clue in self.clues_across_map.items()]
+        ))
+        print("DOWN:")
+        print('\n'.join(
+            [f"{pos}. {clue}" for pos, clue in self.clues_down_map.items()]
+        ))
+
     def upload_grid(self, img_path: str, rows: int, cols: int):
+        """
+        Take an image with a crossword grid and store it in the class
+        :param img_path: path to the image file
+        :param rows: number of rows in the grid
+        :param cols: number of columns in the grid
+        :return:
+        """
 
         # Read the image and convert it to grayscale
         img = cv2.imread(img_path)
@@ -65,9 +122,15 @@ class Grid:
                 if cv2.countNonZero(box) > 50:
                     self.set_grid_cell(i, j)
 
-        self.get_clue_metadata()
+        self.__get_clue_metadata()
 
     def upload_clues(self, img_path: str, is_across: bool):
+        """
+        Uploads a column of clues to the data structure using regexes and string manipulation
+        :param img_path: path to the image file
+        :param is_across: True if the clues are from the across column, False otherwise
+        :return:
+        """
 
         pytesseract.pytesseract.tesseract_cmd = r"C:\\Program Files\\Tesseract-OCR\\tesseract.exe"
 
@@ -158,7 +221,12 @@ class Grid:
                 # Store the clue in the grid's map,
                 clues_map[clue_no].clue = clue_text
 
-    def get_clue_metadata(self):
+    def __get_clue_metadata(self):
+        """
+        Uses the grid to fill out the across/down maps with Clue objects with their
+        corresponding metadata (position and length)
+        :return:
+        """
 
         num_rows = self.length_rows()
         num_cols = self.length_cols()
@@ -287,27 +355,6 @@ class Grid:
                 clue_data = down_clues.pop(0)
                 self.clues_down_map[clue_no] = Clue(clue_data[0], clue_data[1])
                 clue_no += 1
-
-    def length_rows(self):
-        assert self.grid is not None
-        return len(self.grid)
-
-    def length_cols(self):
-        assert self.grid is not None
-        return len(self.grid[0])
-
-    def print_data(self):
-        print("============== GRID ==============")
-        print(self.grid)
-        print("============== CLUES ==============")
-        print("ACROSS:")
-        print('\n'.join(
-            [f"{pos}. {clue}" for pos, clue in self.clues_across_map.items()]
-        ))
-        print("DOWN:")
-        print('\n'.join(
-            [f"{pos}. {clue}" for pos, clue in self.clues_down_map.items()]
-        ))
 
 
 if __name__ == '__main__':
