@@ -23,6 +23,15 @@ class Grid:
         """
         self.grid = [['0'] * cols for _ in range(rows)]
 
+    def get_grid_cell(self, row: int, col: int):
+        """
+        Gets the value in a cell in the crossword grid
+        :param row: row number in the grid
+        :param col: column number in the grid
+        :return: the value stored in the cell
+        """
+        return self.grid[row][col]
+
     def set_grid_cell(self, row: int, col: int):
         """
         Sets a cell in the crossword grid to 1 (white cell)
@@ -51,6 +60,49 @@ class Grid:
         """
         assert len(value) == 1 and value.isalpha()
         self.grid[row][col] = value.upper()
+
+    def solve_clue(self, clue_no: int, is_across: bool, answer: str):
+
+        answer = answer.upper()
+
+        clue_map = self.clues_across_map if is_across else self.clues_down_map
+
+        if clue_no not in clue_map:
+            raise ValueError(f"This crossword puzzle doesn't have {clue_no} " + ("ACROSS" if is_across else "DOWN"))
+
+        answer_len = len(answer)
+        expected_answer_len = sum(clue_map[clue_no].answer_len)
+
+        if answer_len != expected_answer_len:
+            raise ValueError(f"Your answer {answer} doesn't fit in the grid. "
+                             f"Expected: {expected_answer_len} "
+                             f"Received: {len(answer)}")
+
+        clue_pos_row, clue_pos_col = clue_map[clue_no].position
+
+        for i, char in enumerate(answer):
+
+            current_row = clue_pos_row
+            current_col = clue_pos_col
+
+            if is_across:
+                current_col += i
+            else:
+                current_row += i
+
+            current_cell_value = self.get_grid_cell(current_row, current_col)
+
+            if current_cell_value == '1':
+                # Cell is available: fill it in
+                self.fill_grid_cell(current_row, current_col, char)
+            elif current_cell_value == '0':
+                # Cell isn't meant to have a character - programmer error
+                raise ValueError(f"Attempted to fill black cell at Row {current_row}, Col {current_col} ")
+            elif current_cell_value != char:
+                # A character is already in the grid, and this answer won't work with it
+                raise ValueError(f"Answer collision: proposed answer clashes with existing grid")
+
+            # Character is already in the grid and aligns with the provided answer
 
     def length_rows(self):
         """
@@ -376,5 +428,7 @@ if __name__ == '__main__':
     grid.upload_clues('test_images/6_clues_across.jpg', is_across=True)
     print("Uploading down clues...")
     grid.upload_clues('test_images/6_clues_down.jpg', is_across=False)
-    grid.fill_grid_cell(0, 0, 'Z')
+
+    grid.solve_clue(1, True, "ANSWER")
+    grid.solve_clue(1, False, "ANSWERED")
     grid.print_data()
