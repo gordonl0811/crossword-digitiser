@@ -151,8 +151,6 @@ class CrosswordPuzzle:
                 if cv2.countNonZero(box) > 50:
                     self._grid.set_grid_cell(i, j)
 
-        self.__get_clue_metadata()
-
     def __upload_clues(self, img_path: str, is_across: bool):
         """
         Uploads a column of clues to the data structure using regexes and string manipulation
@@ -241,112 +239,20 @@ class CrosswordPuzzle:
         Gets a set of metadata from the grid and verifies the stored clues against it
         """
 
-        across_clues_metadata, down_clues_metadata = self.__get_clue_metadata()
+        across_clues_metadata, down_clues_metadata = self.__get_metadata_all()
 
         self.__verify_clues(self._clues_across_map, across_clues_metadata)
         self.__verify_clues(self._clues_down_map, down_clues_metadata)
 
-    def __get_clue_metadata(self):
+    def __get_metadata_all(self):
         """
         Uses the grid to fill out the across/down maps with Clue objects with their
         corresponding metadata (position and length)
         :return: metadata for across and down clues
         """
 
-        num_rows = self._grid.length_rows()
-        num_cols = self._grid.length_cols()
-
-        across_metadata = []
-        down_metadata = []
-
-        # Get all "across" clues
-        for i, row in enumerate(self._grid.data):
-
-            # Two pointers
-            p1 = p2 = 0
-
-            # Find Across
-
-            while p1 < num_cols:
-
-                if p1 == p2:
-                    # Searching for a new word
-                    if row[p1] != '0':
-                        # 1st pointer is on a white cell
-                        p2 += 1
-                    else:
-                        # 1st pointer is on a black cell
-                        p1 += 1
-                        p2 += 1
-                else:
-                    if p2 == num_cols:
-                        # End of row
-                        word_length = p2 - p1
-                        if word_length > 1:
-                            # We've got a word, store the information
-                            position = (i, p1)
-                            across_metadata.append(ClueMetadata(position, word_length))
-                        # 1st pointer set to 2nd (ending loop)
-                        p1 = p2
-                    else:
-                        # Check if we have a white cell
-                        if row[p2] != '0':
-                            # White cell found
-                            p2 += 1
-                        else:
-                            # End of row
-                            word_length = p2 - p1
-                            if word_length > 1:
-                                # We've got a word, store the information
-                                position = (i, p1)
-                                across_metadata.append(ClueMetadata(position, word_length))
-                            # 1st pointer set to 2nd
-                            p1 = p2
-
-        # Get all "down" clues using a similar algorithm but with a transposed grid
-        for j, col in enumerate(map(list, zip(*self._grid.data))):
-
-            # Two pointers
-            p1 = p2 = 0
-
-            while p1 < num_rows:
-
-                if p1 == p2:
-                    # Searching for a new word
-                    if col[p1] != '0':
-                        # 1st pointer is on a white cell
-                        p2 += 1
-                    else:
-                        # 1st pointer is on a black cell
-                        p1 += 1
-                        p2 += 1
-                else:
-                    if p2 == num_rows:
-                        # End of column
-                        word_length = p2 - p1
-                        if word_length > 1:
-                            # We've got a word, store the information
-                            position = (p1, j)
-                            down_metadata.append(ClueMetadata(position, word_length))
-                        # 1st pointer set to 2nd (ending loop)
-                        p1 = p2
-                    else:
-                        # Check if we have a white cell
-                        if col[p2] != '0':
-                            # White cell found
-                            p2 += 1
-                        else:
-                            # End of column
-                            word_length = p2 - p1
-                            if word_length > 1:
-                                # We've got a word, store the information
-                                position = (p1, j)
-                                down_metadata.append(ClueMetadata(position, word_length))
-                            # 1st pointer set to 2nd
-                            p1 = p2
-
-        # Sort "down" clues
-        down_metadata.sort()
+        across_metadata = self.__get_metadata_set(is_across=True)
+        down_metadata = self.__get_metadata_set(is_across=False)
 
         # Create and enumerate the clues
 
@@ -378,6 +284,74 @@ class CrosswordPuzzle:
                 clue_no += 1
 
         return enumerated_across_metadata, enumerated_down_metadata
+
+    def __get_metadata_set(self, is_across: bool):
+        """
+        Generates a list of ClueMetadata based on the layout of a grid
+        :param is_across: indicate metadata generation for either Across or Down clues
+        :return: list of ClueMetadata
+        """
+
+        metadata_set = []
+
+        if is_across:
+            row_length = self._grid.length_cols()
+            grid_data = self._grid.data
+        else:
+            row_length = self._grid.length_rows()
+            grid_data = map(list, zip(*self._grid.data))
+
+        for i, row in enumerate(grid_data):
+
+            # Two pointers
+            p1 = p2 = 0
+
+            while p1 < row_length:
+                if p1 == p2:
+                    # Searching for a new word
+                    if row[p1] != '0':
+                        # 1st pointer is on a white cell
+                        p2 += 1
+                    else:
+                        # 1st pointer is on a black cell
+                        p1 += 1
+                        p2 += 1
+                else:
+                    if p2 == row_length:
+                        # End of row
+                        word_length = p2 - p1
+                        if word_length > 1:
+                            # We've got a word, store the information
+                            position = (i, p1)
+                            metadata_set.append(ClueMetadata(position, word_length))
+                        # 1st pointer set to 2nd (ending loop)
+                        p1 = p2
+                    else:
+                        # Check if we have a white cell
+                        if row[p2] != '0':
+                            # White cell found
+                            p2 += 1
+                        else:
+                            # End of row
+                            word_length = p2 - p1
+                            if word_length > 1:
+                                # We've got a word, store the information
+                                position = (i, p1)
+                                metadata_set.append(ClueMetadata(position, word_length))
+
+                            # 1st pointer set to 2nd
+                            p1 = p2
+
+        # Down clues will have their position flipped which must be corrected
+        # i.e. position = (p1, i) instead of (i, p1)
+        if not is_across:
+            for metadata in metadata_set:
+                metadata.pos = tuple(reversed(metadata.pos))
+
+        # Sort metadata by position
+        metadata_set.sort()
+
+        return metadata_set
 
     @staticmethod
     def __verify_clues(clues_map, clues_metadata):
