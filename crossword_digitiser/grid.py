@@ -67,9 +67,18 @@ class Grid:
 
         self.get_clue_metadata()
 
-    def upload_puzzle(self, img_path: str, is_across: bool):
+    def upload_puzzle(self, img_path: str, rows: int, cols: int):
 
         pytesseract.pytesseract.tesseract_cmd = r"C:\\Program Files\\Tesseract-OCR\\tesseract.exe"
+
+        # Upload the grid
+        self.upload_grid(img_path, rows, cols)
+
+        # White out the grid
+
+        # Detect "Across" and "Down" columns
+
+        # Save Across and Down as their own temporary images
 
         img = cv2.imread(img_path)
 
@@ -327,13 +336,5 @@ class Grid:
 
 if __name__ == '__main__':
     grid = Grid()
-    # print("Uploading grid...")
-    # # grid.upload_grid('test_images/6_grid.jpg', 15, 15)
-    # print("Uploading across clues...")
-    # grid.upload_clues('test_images/6_clues_across.jpg', is_across=True)
-    # print("Uploading down clues...")
-    # grid.upload_clues('test_images/6_clues_down.jpg', is_across=False)
-    # grid.print_data()
-
-    grid.upload_puzzle('test_images/9_puzzle.jpg', True)
+    grid.upload_puzzle('test_images/5_puzzle.jpg', 13, 13)
 
