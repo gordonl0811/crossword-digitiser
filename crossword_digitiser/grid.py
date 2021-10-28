@@ -106,8 +106,6 @@ class Grid:
         split_text_iter = iter(split_text)
         clue_length_tuples = list(zip(split_text_iter, split_text_iter))
 
-        print(clue_length_tuples)
-
         # Process each clue
         for clue, length in clue_length_tuples:
 
@@ -139,18 +137,23 @@ class Grid:
 
                 if ',' in length_val_match:
                     word_lengths = length_val_match.split(',')
-                    answer_len = sum(map(int, word_lengths))
+                    answer_len = list(map(int, word_lengths))
                 else:
-                    answer_len = int(length_val_match)
+                    answer_len = [int(length_val_match)]
 
                 # The map being used is dependent on the across_clues flag given
                 clues_map = self.clues_across_map if is_across else self.clues_down_map
 
                 # Verify that the answer length matches what the grid has
-                if answer_len != clues_map[clue_no].answer_len:
+                if sum(answer_len) != sum(clues_map[clue_no].answer_len):
 
-                    raise ValueError(f"Answer length of {answer_len} != grid value of {clues_map[clue_no].answer_len}\n"
-                                     f"CLUE: {clue_no}")
+                    raise ValueError(
+                        f"Answer length of {answer_len} != grid structure of {clues_map[clue_no].answer_len}\n"
+                                     f"CLUE: {clue_no}"
+                    )
+                else:
+                    # Reassign the actual clue length
+                    clues_map[clue_no].answer_len = answer_len
 
                 # Store the clue in the grid's map,
                 clues_map[clue_no].clue = clue_text
@@ -189,7 +192,7 @@ class Grid:
                         if word_length > 1:
                             # We've got a word, store the information
                             position = (i, p1)
-                            across_clues.append((position, word_length))
+                            across_clues.append((position, [word_length]))
                         # 1st pointer set to 2nd (ending loop)
                         p1 = p2
                     else:
@@ -203,7 +206,7 @@ class Grid:
                             if word_length > 1:
                                 # We've got a word, store the information
                                 position = (i, p1)
-                                across_clues.append((position, word_length))
+                                across_clues.append((position, [word_length]))
                             # 1st pointer set to 2nd
                             p1 = p2
 
@@ -231,7 +234,7 @@ class Grid:
                         if word_length > 1:
                             # We've got a word, store the information
                             position = (p1, j)
-                            down_clues.append((position, word_length))
+                            down_clues.append((position, [word_length]))
                         # 1st pointer set to 2nd (ending loop)
                         p1 = p2
                     else:
@@ -245,7 +248,7 @@ class Grid:
                             if word_length > 1:
                                 # We've got a word, store the information
                                 position = (p1, j)
-                                down_clues.append((position, word_length))
+                                down_clues.append((position, [word_length]))
                             # 1st pointer set to 2nd
                             p1 = p2
 
@@ -309,10 +312,11 @@ class Grid:
 
 if __name__ == '__main__':
     grid = Grid()
-    grid.upload_grid('test_images/7_grid.jpg', 15, 15)
-    grid.print_data()
-    grid.upload_clues('test_images/7_clues_across.jpg', is_across=True)
-    grid.print_data()
-    grid.upload_clues('test_images/7_clues_down.jpg', is_across=False)
+    print("Uploading grid...")
+    grid.upload_grid('test_images/6_grid.jpg', 15, 15)
+    print("Uploading across clues...")
+    grid.upload_clues('test_images/6_clues_across.jpg', is_across=True)
+    print("Uploading down clues...")
+    grid.upload_clues('test_images/6_clues_down.jpg', is_across=False)
     grid.print_data()
 
