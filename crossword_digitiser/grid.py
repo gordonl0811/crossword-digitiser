@@ -1,5 +1,4 @@
 import cv2
-import numpy as np
 import pytesseract
 
 from clue import Clue
@@ -22,25 +21,36 @@ class Grid:
         :param cols: number of columns in the grid
         :return: None
         """
-        self.grid = np.zeros((rows, cols))
+        self.grid = [['0'] * cols for _ in range(rows)]
 
-    def set_grid_cell(self, row, col):
+    def set_grid_cell(self, row: int, col: int):
         """
         Sets a cell in the crossword grid to 1 (white cell)
         :param row: row number in the grid
         :param col: column number in the grid
         :return:
         """
-        self.grid.itemset((row, col), 1)
+        self.grid[row][col] = '1'
 
-    def clear_grid_cell(self, row, col):
+    def clear_grid_cell(self, row: int, col: int):
         """
         Sets a cell in the crossword grid to 0 (black cell)
         :param row: row number in the grid
         :param col: column number in the grid
         :return:
         """
-        self.grid.itemset((row, col), 0)
+        self.grid[row][col] = '0'
+
+    def fill_grid_cell(self, row: int, col: int, value: str):
+        """
+        Fills in a cell in the crossword grid using the given value
+        :param row: row number in the grid
+        :param col: column number in the grid
+        :param value: a single character to be placed in the cell
+        :return:
+        """
+        assert len(value) == 1 and value.isalpha()
+        self.grid[row][col] = value.upper()
 
     def length_rows(self):
         """
@@ -64,7 +74,8 @@ class Grid:
         :return:
         """
         print("============== GRID ==============")
-        print(self.grid)
+        for row in self.grid:
+            print(row)
         print("============== CLUES ==============")
         print("ACROSS:")
         print('\n'.join(
@@ -212,7 +223,7 @@ class Grid:
 
                     raise ValueError(
                         f"Answer length of {answer_len} != grid structure of {clues_map[clue_no].answer_len}\n"
-                                     f"CLUE: {clue_no}"
+                        f"CLUE: {clue_no}"
                     )
                 else:
                     # Reassign the actual clue length
@@ -246,7 +257,7 @@ class Grid:
 
                 if p1 == p2:
                     # Searching for a new word
-                    if row[p1]:
+                    if row[p1] != '0':
                         # 1st pointer is on a white cell
                         p2 += 1
                     else:
@@ -265,7 +276,7 @@ class Grid:
                         p1 = p2
                     else:
                         # Check if we have a white cell
-                        if row[p2]:
+                        if row[p2] != '0':
                             # White cell found
                             p2 += 1
                         else:
@@ -278,8 +289,8 @@ class Grid:
                             # 1st pointer set to 2nd
                             p1 = p2
 
-        # Get all "down" clues
-        for j, col in enumerate(self.grid.T):
+        # Get all "down" clues using a similar algorithm but with a transposed grid
+        for j, col in enumerate(map(list, zip(*self.grid))):
 
             # Two pointers
             p1 = p2 = 0
@@ -288,7 +299,7 @@ class Grid:
 
                 if p1 == p2:
                     # Searching for a new word
-                    if col[p1]:
+                    if col[p1] != '0':
                         # 1st pointer is on a white cell
                         p2 += 1
                     else:
@@ -307,7 +318,7 @@ class Grid:
                         p1 = p2
                     else:
                         # Check if we have a white cell
-                        if col[p2]:
+                        if col[p2] != '0':
                             # White cell found
                             p2 += 1
                         else:
@@ -365,5 +376,5 @@ if __name__ == '__main__':
     grid.upload_clues('test_images/6_clues_across.jpg', is_across=True)
     print("Uploading down clues...")
     grid.upload_clues('test_images/6_clues_down.jpg', is_across=False)
+    grid.fill_grid_cell(0, 0, 'Z')
     grid.print_data()
-

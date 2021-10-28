@@ -1,2 +1,2 @@
-numpy==1.21.3
 opencv_python==4.5.4.58
+pytesseract==0.3.8
