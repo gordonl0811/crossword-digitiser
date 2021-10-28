@@ -3,6 +3,7 @@ import numpy as np
 import pytesseract
 
 from clue import Clue
+# from constants import TESSERACT_WHITELIST
 
 from collections import OrderedDict
 import re
@@ -75,7 +76,11 @@ class Grid:
         # TODO: Image preprocessing
 
         # Convert the image to a string
-        text = pytesseract.image_to_string(img, lang='eng', config='--psm 6')
+        text = pytesseract.image_to_string(
+            img,
+            lang='eng',
+            config=f'--psm 6'
+        )
 
         # TODO: Text post processing
 
@@ -85,8 +90,8 @@ class Grid:
         # Change vertical bars to "I"
         text = text.replace('|', 'I')
 
-        # Remove newlines and duplicate newlines
-        text = text.replace('\n', '')
+        # Replace newlines with spaces
+        text = text.replace('\n', ' ')
 
         # TODO: Get clues
 
@@ -106,8 +111,8 @@ class Grid:
         # Process each clue
         for clue, length in clue_length_tuples:
 
-            # Search for the 2 digit number in the clue
-            clue_no_search = re.match(r'([1-9][0-9]?)\.?(.*)', clue)
+            # Search for the 2 digit number in the clue after removing extra whitespace
+            clue_no_search = re.match(r'([1-9][0-9]?)\.?(.*)', clue.lstrip().rstrip())
 
             # Search for the actual value of the length
             length_val_search = re.match(r'\((.*)\)', length)
@@ -304,9 +309,10 @@ class Grid:
 
 if __name__ == '__main__':
     grid = Grid()
-    grid.upload_grid('test_images/6_grid.jpg', 15, 15)
-    grid.upload_clues('test_images/6_clues_across.jpg', is_across=True)
-    grid.upload_clues('test_images/6_clues_down.jpg', is_across=False)
-
+    grid.upload_grid('test_images/7_grid.jpg', 15, 15)
+    grid.print_data()
+    grid.upload_clues('test_images/7_clues_across.jpg', is_across=True)
+    grid.print_data()
+    grid.upload_clues('test_images/7_clues_down.jpg', is_across=False)
     grid.print_data()
 
