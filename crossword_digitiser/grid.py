@@ -62,6 +62,13 @@ class Grid:
         self.grid[row][col] = value.upper()
 
     def solve_clue(self, clue_no: int, is_across: bool, answer: str):
+        """
+        Fills in a grid with a given answer to a clue
+        :param clue_no: clue number
+        :param is_across: True if across clue, False if down clue
+        :param answer: answer
+        :return:
+        """
 
         answer = answer.upper()
 
