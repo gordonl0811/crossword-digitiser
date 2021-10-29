@@ -74,15 +74,12 @@ def grid_from_image(crossword_puzzle: CrosswordPuzzle, img_path: str, rows: int,
     cross_rect = thresh2[y:y + h, x:x + w]
     cross_rect = cv2.resize(cross_rect, (rows * 10, cols * 10))
 
-    # Initialise the grid as a 2D array with zeroes
-    crossword_puzzle.grid.create_grid(rows, cols)
-
     # Iterate through each cell, treating it as empty if more than 50 pixels are white
     for i in range(rows):
         for j in range(cols):
             box = cross_rect[i * 10:(i + 1) * 10, j * 10:(j + 1) * 10]
             if cv2.countNonZero(box) > 50:
-                crossword_puzzle.grid.set_grid_cell(i, j)
+                crossword_puzzle.turn_cell_white(i, j)
 
 
 def clues_from_image(crossword_puzzle: CrosswordPuzzle, img_path: str, is_across: bool):

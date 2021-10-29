@@ -22,10 +22,6 @@ class CrosswordPuzzle:
         print("\nDOWN:\n")
         print('\n'.join([f"{pos}. {clue}" for pos, clue in self._clues_down_map.items()]))
 
-    @property
-    def grid(self):
-        return self._grid
-
     def set_grid(self, rows: int, cols: int):
         """
         Sets up the grid for the crossword clue
@@ -53,6 +49,22 @@ class CrosswordPuzzle:
             if clue_no in self._clues_down_map:
                 raise ValueError(f"{clue_no} DOWN already exists")
             self._clues_down_map[clue_no] = new_clue
+
+    def remove_clue(self, clue_no: int, is_across: bool):
+        """
+        Removes a clue from the crossword puzzle
+        :param clue_no: clue number
+        :param is_across: across or down clue
+        """
+
+        if is_across:
+            if clue_no not in self._clues_across_map:
+                raise ValueError(f"{clue_no} ACROSS does not exist")
+            del self._clues_across_map[clue_no]
+        else:
+            if clue_no not in self._clues_down_map:
+                raise ValueError(f"{clue_no} DOWN does not exist")
+            del self._clues_down_map[clue_no]
 
     def solve_clue(self, clue_no: int, is_across: bool, answer: str):
         """
@@ -89,19 +101,58 @@ class CrosswordPuzzle:
             else:
                 current_row += i
 
-            current_cell_value = self._grid.get_grid_cell(current_row, current_col)
+            self.fill_cell(current_row, current_col, char)
 
-            if current_cell_value == '1':
-                # Cell is available: fill it in
-                self._grid.fill_grid_cell(current_row, current_col, char)
-            elif current_cell_value == '0':
-                # Cell isn't meant to have a character - programmer error
-                raise ValueError(f"Attempted to fill black cell at Row {current_row}, Col {current_col} ")
-            elif current_cell_value != char:
-                # A character is already in the grid, and this answer won't work with it
-                raise ValueError(f"Answer collision: proposed answer clashes with existing grid")
+    def fill_cell(self, row: int, col: int, char: str):
+        """
+        Fills a cell in the grid
+        :param row: row in the crossword
+        :param col: column in the crossword
+        :param char: character to fill in the grid
+        """
 
-            # Character is already in the grid and aligns with the provided answer
+        # Verify that the input is a single character
+        if len(char) != 1:
+            raise ValueError("Input isn't ")
+        if not char.isupper():
+            raise ValueError("Input isn't a single character")
+
+        char = char.upper()
+
+        current_cell_value = self._grid.get_grid_cell(row, col)
+
+        if current_cell_value == '1':
+            # Cell is available: fill it in
+            self._grid.fill_grid_cell(row, col, char)
+        elif current_cell_value == '0':
+            # Cell isn't meant to have a character - programmer error
+            raise ValueError(f"Attempted to fill black cell at Row {row}, Col {col}")
+        elif current_cell_value != char:
+            # A character is already in the grid, and this answer won't work with it
+            raise ValueError(f"Answer collision: proposed answer clashes with existing grid")
+
+        # Character is already in the grid and aligns with the provided answer - no action
+
+    def clear_cell(self, row: int, col: int):
+        """
+        Clears a cell in the grid
+        :param row: row in the crossword
+        :param col: column in the crossword
+        """
+
+        current_cell_value = self._grid.get_grid_cell(row, col)
+
+        if current_cell_value == '0':
+            # Cell isn't meant to have a character - programmer error
+            raise ValueError(f"Attempted to clear a black cell at Row {row}, Col {col}")
+
+        self._grid.clear_grid_cell()
+
+    def turn_cell_white(self, row: int, col: int):
+        self._grid.set_grid_cell(row, col)
+
+    def turn_cell_black(self, row: int, col: int):
+        self._grid.clear_grid_cell(row, col)
 
     def verify_and_sync(self):
         """
