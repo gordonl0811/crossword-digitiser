@@ -1,20 +1,50 @@
 import cv2.cv2 as cv2
 import pytesseract
 
-from crossword_puzzle_utils import Grid, Clue
+from crossword_puzzle import CrosswordPuzzle
 
-from collections import OrderedDict
 import re
 
 
-def grid_from_image(grid: Grid, img_path: str, rows: int, cols: int):
+def crossword_from_images(grid_path: str, across_clues_path: str, down_clues_path: str, rows: int, cols: int):
+    """
+    Function that takes in a picture of a grid, across and down clues,
+    and verifying that the clues match the grid
+    :param grid_path: path to the picture of the grid
+    :param across_clues_path: path to the picture of the Across clues
+    :param down_clues_path: path to the picture of the Down clues
+    :param rows: number of rows in the grid
+    :param cols: number of columns in the grid
+    """
+
+    crossword_puzzle = CrosswordPuzzle()
+
+    print("Uploading grid...")
+    grid_from_image(crossword_puzzle=crossword_puzzle, img_path=grid_path, rows=rows, cols=cols)
+
+    print("Uploading across clues...")
+    clues_from_image(crossword_puzzle=crossword_puzzle, img_path=across_clues_path, is_across=True)
+
+    print("Uploading down clues...")
+    clues_from_image(crossword_puzzle=crossword_puzzle, img_path=down_clues_path, is_across=False)
+
+    print("Verifying puzzle state...")
+    crossword_puzzle.verify_and_sync()
+
+    return crossword_puzzle
+
+
+def grid_from_image(crossword_puzzle: CrosswordPuzzle, img_path: str, rows: int, cols: int):
     """
     Take an image with a crossword grid and store it in the class
-    :param grid: reference to the grid that will be changed
+    :param crossword_puzzle: the crossword puzzle being modified
     :param img_path: path to the image file
     :param rows: number of rows in the grid
     :param cols: number of columns in the grid
     """
+
+    # Set the grid dimensions
+    crossword_puzzle.set_grid(rows, cols)
 
     # Read the image and convert it to grayscale
     img = cv2.imread(img_path)
@@ -45,21 +75,21 @@ def grid_from_image(grid: Grid, img_path: str, rows: int, cols: int):
     cross_rect = cv2.resize(cross_rect, (rows * 10, cols * 10))
 
     # Initialise the grid as a 2D array with zeroes
-    grid.create_grid(rows, cols)
+    crossword_puzzle.grid.create_grid(rows, cols)
 
     # Iterate through each cell, treating it as empty if more than 50 pixels are white
     for i in range(rows):
         for j in range(cols):
             box = cross_rect[i * 10:(i + 1) * 10, j * 10:(j + 1) * 10]
             if cv2.countNonZero(box) > 50:
-                grid.set_grid_cell(i, j)
+                crossword_puzzle.grid.set_grid_cell(i, j)
 
 
-def clues_from_image(clues_map: OrderedDict[int, Clue], img_path: str, is_across: bool):
+def clues_from_image(crossword_puzzle: CrosswordPuzzle, img_path: str, is_across: bool):
     """
     Uploads a column of clues to the data structure using regexes and string manipulation
     Clue objects will be missing a "position" field, which is updated in __verify_and_sync()
-    :param clues_map: a map of clue numbers to Clue objects
+    :param crossword_puzzle: the crossword puzzle being modified
     :param img_path: path to the image file
     :param is_across: True if the clues are from the across column, False otherwise
     :return:
@@ -134,4 +164,20 @@ def clues_from_image(clues_map: OrderedDict[int, Clue], img_path: str, is_across
                 answer_len = [int(length_val_match)]
 
             # Store the clue in the respective grid's map
-            clues_map[clue_no] = Clue(clue_text, answer_len, None)
+            crossword_puzzle.add_clue(clue_no, is_across, clue_text, answer_len)
+
+
+if __name__ == '__main__':
+
+    puzzle = crossword_from_images(
+        grid_path="test_images/6_grid.jpg",
+        across_clues_path="test_images/6_clues_across.jpg",
+        down_clues_path="test_images/6_clues_down.jpg",
+        rows=15,
+        cols=15
+    )
+
+    puzzle.solve_clue(1, True, "ANSWER")
+    puzzle.solve_clue(1, False, "ANSWERED")
+
+    puzzle.print_data()

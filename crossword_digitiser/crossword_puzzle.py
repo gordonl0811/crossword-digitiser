@@ -1,4 +1,3 @@
-from image_to_crossword import grid_from_image, clues_from_image
 from crossword_puzzle_utils import Grid, Clue, ClueMetadata
 
 from collections import OrderedDict
@@ -23,9 +22,37 @@ class CrosswordPuzzle:
         print("\nDOWN:\n")
         print('\n'.join([f"{pos}. {clue}" for pos, clue in self._clues_down_map.items()]))
 
-    def add_clue(self, clue_no: int, is_across: bool, clue: str, answer_len: list[int]):
-        # TODO: Implement
-        pass
+    @property
+    def grid(self):
+        return self._grid
+
+    def set_grid(self, rows: int, cols: int):
+        """
+        Sets up the grid for the crossword clue
+        :param rows: number of rows in the grid
+        :param cols: number of cols in the grid
+        """
+        self._grid.create_grid(rows, cols)
+
+    def add_clue(self, clue_no: int, is_across: bool, clue_text: str, answer_len: list[int]):
+        """
+        Adds a clue to the crossword puzzle
+        :param clue_no: clue number
+        :param is_across: across or down clue
+        :param clue_text: the provided clue
+        :param answer_len: length of the answer
+        """
+
+        new_clue = Clue(clue_text, answer_len, (-1, -1))
+
+        if is_across:
+            if clue_no in self._clues_across_map:
+                raise ValueError(f"{clue_no} ACROSS already exists")
+            self._clues_across_map[clue_no] = new_clue
+        else:
+            if clue_no in self._clues_down_map:
+                raise ValueError(f"{clue_no} DOWN already exists")
+            self._clues_down_map[clue_no] = new_clue
 
     def solve_clue(self, clue_no: int, is_across: bool, answer: str):
         """
@@ -76,30 +103,7 @@ class CrosswordPuzzle:
 
             # Character is already in the grid and aligns with the provided answer
 
-    def upload_from_images(self, grid_path: str, across_clues_path: str, down_clues_path: str, rows: int, cols: int):
-        """
-        Function that takes in a picture of a grid, across and down clues,
-        and verifying that the clues match the grid
-        :param grid_path: path to the picture of the grid
-        :param across_clues_path: path to the picture of the Across clues
-        :param down_clues_path: path to the picture of the Down clues
-        :param rows: number of rows in the grid
-        :param cols: number of columns in the grid
-        """
-
-        print("Uploading grid...")
-        grid_from_image(grid=self._grid, img_path=grid_path, rows=rows, cols=cols)
-
-        print("Uploading across clues...")
-        clues_from_image(clues_map=self._clues_across_map, img_path=across_clues_path, is_across=True)
-
-        print("Uploading down clues...")
-        clues_from_image(clues_map=self._clues_down_map, img_path=down_clues_path, is_across=False)
-
-        print("Verifying puzzle state...")
-        self.__verify_and_sync()
-
-    def __verify_and_sync(self):
+    def verify_and_sync(self):
         """
         Gets a set of metadata from the grid and verifies the stored clues against it
         """
@@ -245,21 +249,3 @@ class CrosswordPuzzle:
 
             # Clue is verified - sync the clue by storing its position from the metadata
             clue.pos = clue_metadata.pos
-
-
-if __name__ == '__main__':
-
-    crossword_puzzle = CrosswordPuzzle()
-
-    crossword_puzzle.upload_from_images(
-        grid_path="test_images/6_grid.jpg",
-        across_clues_path="test_images/6_clues_across.jpg",
-        down_clues_path="test_images/6_clues_down.jpg",
-        rows=15,
-        cols=15
-    )
-
-    crossword_puzzle.solve_clue(1, True, "ANSWER")
-    crossword_puzzle.solve_clue(1, False, "ANSWERED")
-
-    crossword_puzzle.print_data()
