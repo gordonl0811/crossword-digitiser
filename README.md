@@ -1,2 +1,13 @@
-# crossword-digitiser
-Takes images of crosswords and stores its data into usable data structures
+# Crossword Digitiser
+
+Digitises a crossword puzzle from images, using scripts provided in the `image_to_crossword.py` module.
+
+Puzzle data is stored in a CrosswordPuzzle object, with exposed methods that can manipulate the grid and clues stored.
+
+## Usage and Documentation
+
+Running `main.py` will run a demo of the digitiser using images from the `crossword_digitiser/test_images` folder.
+
+Public method documentation can primarily be found in the docstrings.
+
+Run `pydoc -b` to browse the available methods in a legible format.

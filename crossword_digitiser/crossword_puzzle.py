@@ -149,14 +149,25 @@ class CrosswordPuzzle:
         self._grid.clear_grid_cell()
 
     def turn_cell_white(self, row: int, col: int):
+        """
+        Turns a cell in the grid white (available)
+        :param row: row in the crossword
+        :param col: column in the crossword
+        """
         self._grid.set_grid_cell(row, col)
 
     def turn_cell_black(self, row: int, col: int):
+        """
+        Turns a cell in the grid white (unavailable)
+        :param row: row in the crossword
+        :param col: column in the crossword
+        """
         self._grid.clear_grid_cell(row, col)
 
     def verify_and_sync(self):
         """
-        Gets a set of metadata from the grid and verifies the stored clues against it
+        Verifies that the grid structure matches the clues stored inside the puzzle.
+        If successful, updates the clues to store information on where they are in the grid.
         """
 
         across_clues_metadata, down_clues_metadata = self.__get_metadata_all()

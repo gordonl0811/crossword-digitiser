@@ -162,19 +162,3 @@ def clues_from_image(crossword_puzzle: CrosswordPuzzle, img_path: str, is_across
 
             # Store the clue in the respective grid's map
             crossword_puzzle.add_clue(clue_no, is_across, clue_text, answer_len)
-
-
-if __name__ == '__main__':
-
-    puzzle = crossword_from_images(
-        grid_path="test_images/6_grid.jpg",
-        across_clues_path="test_images/6_clues_across.jpg",
-        down_clues_path="test_images/6_clues_down.jpg",
-        rows=15,
-        cols=15
-    )
-
-    puzzle.solve_clue(1, True, "ANSWER")
-    puzzle.solve_clue(1, False, "ANSWERED")
-
-    puzzle.print_data()
