@@ -7,6 +7,13 @@ class CrosswordJsonProcessor:
 
     @staticmethod
     def crossword_from_json(json_string: str):
+        """
+        Takes in a JSON string containing data to build a Crossword Puzzle.
+        Verifies the state of the data before building the crossword, after which
+        it will verify that the clues align with the structure of the grid.
+        :param json_string:
+        :return: a fully built CrosswordPuzzle object
+        """
 
         crossword_data = json.loads(json_string)
 
@@ -96,6 +103,10 @@ class CrosswordJsonProcessor:
 
     @staticmethod
     def __verify_clue_structure(clues):
+        """
+        Verifies that the JSON structures of the across/down clues are correct
+        :param clues: the mapping of clue numbers to clue data
+        """
 
         clue_error = InvalidJsonCrosswordDataError(
             "Incorrect \"clues\" structure. "
