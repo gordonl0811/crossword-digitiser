@@ -1,4 +1,4 @@
-from crossword_puzzle_utils import Grid, Clue, ClueMetadata
+from .utils import Grid, Clue, ClueMetadata
 
 from collections import OrderedDict
 
@@ -113,8 +113,6 @@ class CrosswordPuzzle:
 
         # Verify that the input is a single character
         if len(char) != 1:
-            raise ValueError("Input isn't ")
-        if not char.isupper():
             raise ValueError("Input isn't a single character")
 
         char = char.upper()
@@ -146,7 +144,7 @@ class CrosswordPuzzle:
             # Cell isn't meant to have a character - programmer error
             raise ValueError(f"Attempted to clear a black cell at Row {row}, Col {col}")
 
-        self._grid.clear_grid_cell()
+        self._grid.clear_grid_cell(row, col)
 
     def turn_cell_white(self, row: int, col: int):
         """

@@ -1,7 +1,7 @@
 import cv2.cv2 as cv2
 import pytesseract
 
-from crossword_puzzle import CrosswordPuzzle
+from crossword_puzzle.crossword_puzzle import CrosswordPuzzle
 
 import re
 
