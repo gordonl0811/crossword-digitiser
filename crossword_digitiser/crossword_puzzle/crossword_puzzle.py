@@ -1,4 +1,5 @@
 from .utils import Grid, Clue, ClueMetadata
+from .exceptions import *
 
 from collections import OrderedDict
 
@@ -41,14 +42,12 @@ class CrosswordPuzzle:
 
         new_clue = Clue(clue_text, answer_len, (-1, -1))
 
-        if is_across:
-            if clue_no in self._clues_across_map:
-                raise ValueError(f"{clue_no} ACROSS already exists")
-            self._clues_across_map[clue_no] = new_clue
-        else:
-            if clue_no in self._clues_down_map:
-                raise ValueError(f"{clue_no} DOWN already exists")
-            self._clues_down_map[clue_no] = new_clue
+        clues_map = self._clues_across_map if is_across else self._clues_down_map
+
+        if clue_no in clues_map:
+            raise ClueAlreadyExistsError(clue_no, is_across)
+
+        clues_map[clue_no] = new_clue
 
     def remove_clue(self, clue_no: int, is_across: bool):
         """
@@ -57,14 +56,12 @@ class CrosswordPuzzle:
         :param is_across: across or down clue
         """
 
-        if is_across:
-            if clue_no not in self._clues_across_map:
-                raise ValueError(f"{clue_no} ACROSS does not exist")
-            del self._clues_across_map[clue_no]
-        else:
-            if clue_no not in self._clues_down_map:
-                raise ValueError(f"{clue_no} DOWN does not exist")
-            del self._clues_down_map[clue_no]
+        clues_map = self._clues_across_map if is_across else self._clues_down_map
+
+        if clue_no not in clues_map:
+            raise ClueDoesNotExistError(clue_no, is_across)
+
+        del clues_map[clue_no]
 
     def solve_clue(self, clue_no: int, is_across: bool, answer: str):
         """
@@ -79,15 +76,13 @@ class CrosswordPuzzle:
         clue_map = self._clues_across_map if is_across else self._clues_down_map
 
         if clue_no not in clue_map:
-            raise ValueError(f"This crossword puzzle doesn't have {clue_no} " + ("ACROSS" if is_across else "DOWN"))
+            raise ClueDoesNotExistError(clue_no, is_across)
 
         answer_len = len(answer)
         expected_answer_len = sum(clue_map[clue_no].answer_len)
 
         if answer_len != expected_answer_len:
-            raise ValueError(f"Your answer {answer} doesn't fit in the grid. "
-                             f"Expected: {expected_answer_len} "
-                             f"Received: {len(answer)}")
+            raise AnswerDoesNotFitError(answer, expected_answer_len, len(answer))
 
         clue_pos_row, clue_pos_col = clue_map[clue_no].pos
 
@@ -112,8 +107,8 @@ class CrosswordPuzzle:
         """
 
         # Verify that the input is a single character
-        if len(char) != 1:
-            raise ValueError("Input isn't a single character")
+        if not (len(char) == 1 and char.isalpha()):
+            raise AnswerFormatError(char, row, col)
 
         char = char.upper()
 
@@ -124,10 +119,10 @@ class CrosswordPuzzle:
             self._grid.fill_grid_cell(row, col, char)
         elif current_cell_value == '0':
             # Cell isn't meant to have a character - programmer error
-            raise ValueError(f"Attempted to fill black cell at Row {row}, Col {col}")
+            raise BlackCellModificationError(row, col)
         elif current_cell_value != char:
             # A character is already in the grid, and this answer won't work with it
-            raise ValueError(f"Answer collision: proposed answer clashes with existing grid")
+            raise InputClashesWithExistingEntryError(char, current_cell_value)
 
         # Character is already in the grid and aligns with the provided answer - no action
 
@@ -142,7 +137,7 @@ class CrosswordPuzzle:
 
         if current_cell_value == '0':
             # Cell isn't meant to have a character - programmer error
-            raise ValueError(f"Attempted to clear a black cell at Row {row}, Col {col}")
+            raise BlackCellModificationError(row, col)
 
         self._grid.clear_grid_cell(row, col)
 
@@ -170,8 +165,8 @@ class CrosswordPuzzle:
 
         across_clues_metadata, down_clues_metadata = self.__get_metadata_all()
 
-        self.__verify_clues(self._clues_across_map, across_clues_metadata)
-        self.__verify_clues(self._clues_down_map, down_clues_metadata)
+        self.__verify_clues(self._clues_across_map, across_clues_metadata, is_across=True)
+        self.__verify_clues(self._clues_down_map, down_clues_metadata, is_across=False)
 
     def __get_metadata_all(self):
         """
@@ -283,7 +278,7 @@ class CrosswordPuzzle:
         return metadata_set
 
     @staticmethod
-    def __verify_clues(clues_map, clues_metadata):
+    def __verify_clues(clues_map, clues_metadata, is_across):
         """
         Checks if a map of enumerated Clues matches a map of enumerated ClueMetadata,
         and updates the Clues' positions if successful
@@ -295,17 +290,14 @@ class CrosswordPuzzle:
 
             # Check if the grid expects a clue
             if clue_no not in clues_metadata:
-                raise ValueError(f"Clue {clue_no} ({clue.clue_text}) not found in grid")
+                raise UnexpectedClueError(clue_no, is_across, clue.clue_text)
 
             clue_metadata = clues_metadata[clue_no]
 
             # Check if the grid and clue have matching lengths
-            if sum(clue.answer_len) != clue_metadata.length:
-                raise ValueError(
-                    f"CLUE: {clue_no}\n"
-                    f"Answer's Expected Length: {clue.answer_len}\n"
-                    f"Grid's Expected Length: {clue_metadata.length}"
-                )
+            total_length = sum(clue.answer_len)
+            if total_length != clue_metadata.length:
+                raise ClueLengthDoesNotMatchError(clue_no, is_across, total_length, clue_metadata.length)
 
             # Clue is verified - sync the clue by storing its position from the metadata
             clue.pos = clue_metadata.pos

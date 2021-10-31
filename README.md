@@ -11,3 +11,21 @@ Running `main.py` will run a demo of the digitiser using images from the `crossw
 Public method documentation can primarily be found in the docstrings.
 
 Run `pydoc -b` to browse the available methods in a legible format.
+
+## Exceptions
+User-defined Exceptions have been created for easier debugging/handling. The exception hierarchy can be found below.
+
+```
+CrosswordPuzzleError
+├── PuzzleDevelopmentError
+│   ├── ClueAlreadyExistsError
+│   ├── ClueDoesNotExistError
+│   └── BlackCellModificationError
+├── GridVerificationError
+│   ├── UnexpectedClueError
+│   └── ClueLengthDoesNotMatchError
+└── AnswerInputError
+    ├── AnswerDoesNotFitError
+    ├── AnswerFormatError
+    └── InputClashesWithExistingEntryError
+```
