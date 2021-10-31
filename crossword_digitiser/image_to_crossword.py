@@ -23,13 +23,26 @@ class CrosswordImageProcessor:
         crossword_puzzle = CrosswordPuzzle()
 
         print("Uploading grid...")
-        CrosswordImageProcessor.__grid_from_image(crossword_puzzle=crossword_puzzle, img_path=grid_path, rows=rows, cols=cols)
+        CrosswordImageProcessor.__grid_from_image(
+            crossword_puzzle=crossword_puzzle,
+            img_path=grid_path,
+            rows=rows,
+            cols=cols
+        )
 
         print("Uploading across clues...")
-        CrosswordImageProcessor.__clues_from_image(crossword_puzzle=crossword_puzzle, img_path=across_clues_path, is_across=True)
+        CrosswordImageProcessor.__clues_from_image(
+            crossword_puzzle=crossword_puzzle,
+            img_path=across_clues_path,
+            is_across=True
+        )
 
         print("Uploading down clues...")
-        CrosswordImageProcessor.__clues_from_image(crossword_puzzle=crossword_puzzle, img_path=down_clues_path, is_across=False)
+        CrosswordImageProcessor.__clues_from_image(
+            crossword_puzzle=crossword_puzzle,
+            img_path=down_clues_path,
+            is_across=False
+        )
 
         print("Verifying puzzle state...")
         crossword_puzzle.verify_and_sync()
