@@ -2,12 +2,12 @@
 
 import sys
 
-from image_to_crossword import crossword_from_images
+from image_to_crossword import CrosswordImageProcessor
 
 
 def main(argv):
 
-    puzzle = crossword_from_images(
+    puzzle = CrosswordImageProcessor.crossword_from_images(
         grid_path="test_images/6_grid.jpg",
         across_clues_path="test_images/6_clues_across.jpg",
         down_clues_path="test_images/6_clues_down.jpg",
