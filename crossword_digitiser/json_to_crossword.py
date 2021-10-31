@@ -74,9 +74,10 @@ class CrosswordJsonProcessor:
 
         # Check that it's a 2D list containing 0s and 1s
         num_rows = len(grid)
-        num_cols = grid[0]
+        num_cols = len(grid[0])
+
         for row in grid:
-            if type(row) is not list or len(row) != num_cols or any(cell not in ["0", "1"] for cell in row):
+            if (type(row) is not list) or (len(row) != num_cols) or any(cell not in ["0", "1"] for cell in row):
                 raise grid_error
 
         # VERIFY ACROSS/DOWN CLUES
@@ -116,7 +117,7 @@ class CrosswordJsonProcessor:
         for clue_no, clue_data in clues.items():
 
             # Check that the clue_no is a positive integer
-            if not clue_no.isDigit():
+            if not clue_no.isdigit():
                 raise InvalidJsonCrosswordDataError("Expected clue numbers to be positive integers")
 
             # Check that both "clue" and "length" is in the JSON object
