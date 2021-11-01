@@ -9,13 +9,13 @@ import re
 class CrosswordImageProcessor:
 
     @staticmethod
-    def crossword_from_images(grid_path: str, across_clues_path: str, down_clues_path: str, rows: int, cols: int):
+    def crossword_from_images(grid_img, across_clues_img, down_clues_img, rows: int, cols: int):
         """
         Function that takes in a picture of a grid, across and down clues,
         and verifying that the clues match the grid
-        :param grid_path: path to the picture of the grid
-        :param across_clues_path: path to the picture of the Across clues
-        :param down_clues_path: path to the picture of the Down clues
+        :param grid_img: image of the grid from cv2.imread()
+        :param across_clues_img: image of the across clues from cv2.imread()
+        :param down_clues_img: image of the down clues from cv2.imread()
         :param rows: number of rows in the grid
         :param cols: number of columns in the grid
         """
@@ -25,7 +25,7 @@ class CrosswordImageProcessor:
         print("Uploading grid...")
         CrosswordImageProcessor.__grid_from_image(
             crossword_puzzle=crossword_puzzle,
-            img_path=grid_path,
+            img=grid_img,
             rows=rows,
             cols=cols
         )
@@ -33,14 +33,14 @@ class CrosswordImageProcessor:
         print("Uploading across clues...")
         CrosswordImageProcessor.__clues_from_image(
             crossword_puzzle=crossword_puzzle,
-            img_path=across_clues_path,
+            img=across_clues_img,
             is_across=True
         )
 
         print("Uploading down clues...")
         CrosswordImageProcessor.__clues_from_image(
             crossword_puzzle=crossword_puzzle,
-            img_path=down_clues_path,
+            img=down_clues_img,
             is_across=False
         )
 
@@ -50,11 +50,11 @@ class CrosswordImageProcessor:
         return crossword_puzzle
 
     @staticmethod
-    def __grid_from_image(crossword_puzzle: CrosswordPuzzle, img_path: str, rows: int, cols: int):
+    def __grid_from_image(crossword_puzzle: CrosswordPuzzle, img, rows: int, cols: int):
         """
         Take an image with a crossword grid and store it in the class
         :param crossword_puzzle: the crossword puzzle being modified
-        :param img_path: path to the image file
+        :param img: image object from cv2.imread()
         :param rows: number of rows in the grid
         :param cols: number of columns in the grid
         """
@@ -62,8 +62,7 @@ class CrosswordImageProcessor:
         # Set the grid dimensions
         crossword_puzzle.set_grid(rows, cols)
 
-        # Read the image and convert it to grayscale
-        img = cv2.imread(img_path)
+        # Convert the image to grayscale
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
         # Thresholding
@@ -98,18 +97,16 @@ class CrosswordImageProcessor:
                     crossword_puzzle.turn_cell_white(i, j)
 
     @staticmethod
-    def __clues_from_image(crossword_puzzle: CrosswordPuzzle, img_path: str, is_across: bool):
+    def __clues_from_image(crossword_puzzle: CrosswordPuzzle, img, is_across: bool):
         """
         Uploads a column of clues to the data structure using regexes and string manipulation
         Clue objects will be missing a "position" field, which is updated in __verify_and_sync()
         :param crossword_puzzle: the crossword puzzle being modified
-        :param img_path: path to the image file
+        :param img: image object from cv2.imread()
         :param is_across: True if the clues are from the across column, False otherwise
         """
 
         pytesseract.pytesseract.tesseract_cmd = r"C:\\Program Files\\Tesseract-OCR\\tesseract.exe"
-
-        img = cv2.imread(img_path)
 
         # TODO: IMAGE PREPROCESSING
 

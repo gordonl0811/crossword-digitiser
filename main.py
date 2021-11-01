@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 import sys
+import cv2.cv2 as cv2
 
 from image_to_crossword import CrosswordImageProcessor
 from json_to_crossword import CrosswordJsonProcessor
@@ -8,10 +9,13 @@ from json_to_crossword import CrosswordJsonProcessor
 
 def main(argv):
 
+    grid_img = cv2.imread("test_images/6_grid.jpg")
+    across_img = cv2.imread("test_images/6_clues_across.jpg")
+    down_img = cv2.imread("test_images/6_clues_down.jpg")
     image_puzzle = CrosswordImageProcessor.crossword_from_images(
-        grid_path="test_images/6_grid.jpg",
-        across_clues_path="test_images/6_clues_across.jpg",
-        down_clues_path="test_images/6_clues_down.jpg",
+        grid_img=grid_img,
+        across_clues_img=across_img,
+        down_clues_img=down_img,
         rows=15,
         cols=15
     )
