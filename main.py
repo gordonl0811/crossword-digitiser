@@ -13,6 +13,7 @@ def main(argv):
     across_img = cv2.imread("test_images/6_clues_across.jpg")
     down_img = cv2.imread("test_images/6_clues_down.jpg")
     image_puzzle = CrosswordImageProcessor.crossword_from_images(
+        tesseract_path=r"C:\\Program Files\\Tesseract-OCR\\tesseract.exe",
         grid_img=grid_img,
         across_clues_img=across_img,
         down_clues_img=down_img,

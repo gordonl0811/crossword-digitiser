@@ -9,10 +9,11 @@ import re
 class CrosswordImageProcessor:
 
     @staticmethod
-    def crossword_from_images(grid_img, across_clues_img, down_clues_img, rows: int, cols: int):
+    def crossword_from_images(tesseract_path, grid_img, across_clues_img, down_clues_img, rows: int, cols: int):
         """
         Function that takes in a picture of a grid, across and down clues,
         and verifying that the clues match the grid
+        :param tesseract_path: path to the Tesseract executable
         :param grid_img: image of the grid from cv2.imread()
         :param across_clues_img: image of the across clues from cv2.imread()
         :param down_clues_img: image of the down clues from cv2.imread()
@@ -32,6 +33,7 @@ class CrosswordImageProcessor:
 
         print("Uploading across clues...")
         CrosswordImageProcessor.__clues_from_image(
+            tesseract_path=tesseract_path,
             crossword_puzzle=crossword_puzzle,
             img=across_clues_img,
             is_across=True
@@ -39,6 +41,7 @@ class CrosswordImageProcessor:
 
         print("Uploading down clues...")
         CrosswordImageProcessor.__clues_from_image(
+            tesseract_path=tesseract_path,
             crossword_puzzle=crossword_puzzle,
             img=down_clues_img,
             is_across=False
@@ -97,16 +100,16 @@ class CrosswordImageProcessor:
                     crossword_puzzle.turn_cell_white(i, j)
 
     @staticmethod
-    def __clues_from_image(crossword_puzzle: CrosswordPuzzle, img, is_across: bool):
+    def __clues_from_image(tesseract_path, crossword_puzzle: CrosswordPuzzle, img, is_across: bool):
         """
         Uploads a column of clues to the data structure using regexes and string manipulation
-        Clue objects will be missing a "position" field, which is updated in __verify_and_sync()
+        :param tesseract_path: path to the Tesseract executable
         :param crossword_puzzle: the crossword puzzle being modified
         :param img: image object from cv2.imread()
         :param is_across: True if the clues are from the across column, False otherwise
         """
 
-        pytesseract.pytesseract.tesseract_cmd = r"C:\\Program Files\\Tesseract-OCR\\tesseract.exe"
+        pytesseract.pytesseract.tesseract_cmd = tesseract_path
 
         # TODO: IMAGE PREPROCESSING
 
