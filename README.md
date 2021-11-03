@@ -12,6 +12,24 @@ Public method documentation can primarily be found in the docstrings.
 
 Run `pydoc -b` to browse the available methods in a legible format.
 
+## Exceptions
+User-defined Exceptions have been created for easier debugging/handling. The exception hierarchy can be found below.
+
+```
+CrosswordPuzzleError
+├── PuzzleDevelopmentError
+│   ├── ClueAlreadyExistsError
+│   ├── ClueDoesNotExistError
+│   └── BlackCellModificationError
+├── GridVerificationError
+│   ├── UnexpectedClueError
+│   └── ClueLengthDoesNotMatchError
+└── AnswerInputError
+    ├── AnswerDoesNotFitError
+    ├── AnswerFormatError
+    └── InputClashesWithExistingEntryError
+```
+
 ## CrosswordPuzzle Lifecycle
 
 The CrosswordPuzzle object holds onto a Grid (2D list of characters), and two maps of numbers to Clue objects (representing a list of across/down clues in the puzzle).
@@ -48,21 +66,3 @@ Failure to do so will result in a `GridVerificationError` being raised (see the 
 Finally, the Grid can be manipulated to fill in cells and solve clues using `.fill_cell(row, col, char)` and `.solve_clue(clue_no, is_across, answer)` respectively.
 
 Naturally, attempts to fill in the grid may not work. `AnswerInputError`s will be raised, corresponding to the type of issue arising when solving the grid.
-
-## Exceptions
-User-defined Exceptions have been created for easier debugging/handling. The exception hierarchy can be found below.
-
-```
-CrosswordPuzzleError
-├── PuzzleDevelopmentError
-│   ├── ClueAlreadyExistsError
-│   ├── ClueDoesNotExistError
-│   └── BlackCellModificationError
-├── GridVerificationError
-│   ├── UnexpectedClueError
-│   └── ClueLengthDoesNotMatchError
-└── AnswerInputError
-    ├── AnswerDoesNotFitError
-    ├── AnswerFormatError
-    └── InputClashesWithExistingEntryError
-```
