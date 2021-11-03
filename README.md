@@ -27,7 +27,8 @@ CrosswordPuzzleError
 └── AnswerInputError
     ├── AnswerDoesNotFitError
     ├── AnswerFormatError
-    └── InputClashesWithExistingEntryError
+    ├── InputClashesWithExistingEntryError
+    └── AnswerHasConflictingCharacter
 ```
 
 ## CrosswordPuzzle Lifecycle

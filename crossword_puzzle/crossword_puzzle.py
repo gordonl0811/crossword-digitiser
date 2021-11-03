@@ -96,7 +96,27 @@ class CrosswordPuzzle:
             else:
                 current_row += i
 
-            self.fill_cell(current_row, current_col, char)
+            try:
+
+                self.fill_cell(current_row, current_col, char)
+
+            except InputClashesWithExistingEntryError:
+
+                # Revert the answer that was being inputted
+                for j in range(i):
+
+                    current_row = clue_pos_row
+                    current_col = clue_pos_col
+
+                    if is_across:
+                        current_col += j
+                    else:
+                        current_row += j
+
+                    self.clear_cell(current_row, current_col)
+
+                # Relay that the answer didn't work
+                raise AnswerHasConflictingCharacter(clue_no, is_across, answer, i)
 
     def fill_cell(self, row: int, col: int, char: str):
         """

@@ -98,3 +98,16 @@ class InputClashesWithExistingEntryError(AnswerInputError):
 
     def __str__(self):
         return f"Input clashes with existing entry. Attempted: {self.attempted_entry} Current: {self.current_entry}"
+
+
+class AnswerHasConflictingCharacter(AnswerInputError):
+
+    def __init__(self, clue_no: int, is_across: bool, answer_text: str, conflict_pos: int):
+        self.clue_no = clue_no
+        self.clue_type = "ACROSS" if is_across else "DOWN"
+        self.answer_text = answer_text
+        self.conflict_pos = conflict_pos
+
+    def __str__(self):
+        return f"Answer of {self.answer_text} does not fit for {self.clue_no} {self.clue_type}. " \
+               f"Conflict with the existing grid at character {self.conflict_pos}"
