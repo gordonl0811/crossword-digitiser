@@ -90,7 +90,7 @@ class CrosswordImageProcessor:
         # Extract the crossword region, and resize it to a standard size
         x, y, w, h = cv2.boundingRect(max_cnt)
         cross_rect = thresh2[y:y + h, x:x + w]
-        cross_rect = cv2.resize(cross_rect, (rows * 10, cols * 10))
+        cross_rect = cv2.resize(cross_rect, (cols * 10, rows * 10))
 
         # Iterate through each cell, treating it as empty if more than 50 pixels are white
         for i in range(rows):
